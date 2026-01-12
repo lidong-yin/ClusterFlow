@@ -1,4 +1,4 @@
-# FaceClusterVis / Face Clustering Analyzer (V2.0)
+# Cluster Visualization
 
 一个基于 **Streamlit** 的人脸聚类结果可视化与分析工具（模块化、可扩展、偏工程化实现）。
 

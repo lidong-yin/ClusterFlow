@@ -55,6 +55,15 @@ def render_image_grid(
     if df is None or len(df) == 0:
         st.info("该组没有可展示的样本。")
         return
+    
+    # Defensive fix for PyArrow mixed-type inference errors (e.g. numeric obj_id vs string URL)
+    # We force object columns to string to ensure safe serialization.
+    # Note: We work on a copy to avoid side effects, though st.dataframe/images usually copy anyway.
+    df = df.copy()
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = df[col].astype(str)
+
     if img_col not in df.columns or obj_id_col not in df.columns:
         st.error(f"图片展示需要列: {img_col}, {obj_id_col}")
         return

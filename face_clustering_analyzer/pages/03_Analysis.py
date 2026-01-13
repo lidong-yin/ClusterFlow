@@ -439,7 +439,8 @@ def _render_obj_topk(df: pd.DataFrame, cfg: dict) -> None:
         return
 
     st.subheader("obj_id 定位")
-    st.write(row.to_frame("value"))
+    # Convert to string to prevent Arrow serialization errors with mixed types (int vs str/url)
+    st.write(row.astype(str).to_frame("value"))
 
     if not cfg["show_topk"]:
         return
@@ -487,6 +488,12 @@ def _render_obj_topk(df: pd.DataFrame, cfg: dict) -> None:
 
     ph.empty()
     sub = df.loc[nbr_df_idx].copy()
+    
+    # Force convert ID/URL columns to string to prevent Arrow serialization issues with mixed types
+    for c in ["obj_id", "img_url"]:
+        if c in sub.columns:
+            sub[c] = sub[c].astype(str)
+            
     # Format similarity for display
     sub["sim"] = [f"{s:.3f}" for s in sims]
     

@@ -41,12 +41,17 @@ def load_dataframe(path: str) -> tuple[pd.DataFrame, str]:
     ext = _file_ext(path)
     if ext in {"pkl", "pickle"}:
         obj = pd.read_pickle(path)
-        if isinstance(obj, pd.DataFrame):
-            return obj, "pkl"
-        try:
-            return pd.DataFrame(obj), "pkl"
-        except Exception as e:  # noqa: BLE001
-            raise TypeError(f"PKL 加载成功，但内容不是 DataFrame 且无法转换: {type(obj)}") from e
+        if not isinstance(obj, pd.DataFrame):
+            try:
+                obj = pd.DataFrame(obj)
+            except Exception as e:
+                raise TypeError(f"PKL 加载成功，但内容不是 DataFrame 且无法转换: {type(obj)}") from e
+        
+        # Enforce string type for critical columns to avoid PyArrow mixed type inference issues
+        for c in ["obj_id", "img_url", "gt_person_id"]:
+            if c in obj.columns:
+                obj[c] = obj[c].astype(str)
+        return obj, "pkl"
     if ext in {"parquet"}:
         return pd.read_parquet(path), "parquet"
     if ext in {"csv"}:

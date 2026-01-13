@@ -69,6 +69,8 @@ def _render_sidebar(df) -> dict:
         params["metric"] = st.sidebar.selectbox("距离/相似度", options=["cosine", "l2"], index=0)
         params["minibatch"] = st.sidebar.checkbox("MiniBatchKMeans（推荐大数据）", value=True)
         params["batch_size"] = st.sidebar.number_input("batch_size", min_value=128, max_value=200000, value=2048, step=128)
+        params["max_iter"] = st.sidebar.number_input("最大迭代次数", min_value=1, max_value=1000, value=20, step=1)
+        params["use_gpu_prefer"] = st.sidebar.checkbox("优先使用 Faiss GPU/CPU (更快)", value=True)
 
     st.sidebar.divider()
     out_col = st.sidebar.text_input("输出标签列名", value=f"cluster_id_{method.lower()}")
@@ -127,13 +129,15 @@ def _run_clustering(df, params: dict):
             progress_callback=cluster_cb,
         )
     else:
-        # scikit-learn doesn't expose a clean per-iteration progress hook here.
         res = clustering_utils.kmeans_cluster(
             feats,
             n_clusters=int(params["n_clusters"]),
             metric=str(params["metric"]),
             minibatch=bool(params["minibatch"]),
             batch_size=int(params["batch_size"]),
+            max_iter=int(params["max_iter"]),
+            use_gpu_prefer=bool(params.get("use_gpu_prefer", True)),
+            progress_callback=cluster_cb,
         )
         prog.progress(0.95, text="KMeans 完成，写回结果 ...")
     dt = time.time() - t0

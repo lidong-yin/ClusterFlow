@@ -168,7 +168,7 @@ def infomap_cluster(
     sims = sims[:, 1:]
     nbrs = nbrs[:, 1:]
 
-    info = infomap.Infomap("--two-level --seed 42 --num-trials 3", flow_model="undirected")
+    info = infomap.Infomap("--two-level --silent --seed 42 --num-trials 3", flow_model="undirected")
 
     singles: list[int] = []
     links = 0
@@ -260,19 +260,84 @@ def kmeans_cluster(
     batch_size: int = 2048,
     random_state: int = 42,
     max_iter: int = 300,
+    use_gpu_prefer: bool = True,
+    progress_callback: Optional[Callable[[float, str], None]] = None,
 ) -> ClusterResult:
     """
     KMeans clustering.
-
-    - metric="cosine": normalize and run (spherical-ish) kmeans using euclidean objective.
+    - If faiss is available, use Faiss Kmeans (fast, gpu support, spherical).
+    - Else fallback to sklearn (slow).
+    
+    - metric="cosine": normalize and run spherical kmeans (if faiss) or normalized euclidean (sklearn).
     - metric="l2": raw euclidean kmeans.
     """
     if metric not in {"cosine", "l2"}:
         raise ValueError("metric 必须是 cosine 或 l2。")
+        
     x = feats.astype(np.float32, copy=False)
+    d = x.shape[1]
+    
     if metric == "cosine":
         x = faiss_utils.l2_normalize(x)
 
+    # Try using Faiss first
+    faiss_lib = faiss_utils.try_import_faiss()
+    if faiss_lib is not None:
+        if progress_callback:
+            progress_callback(0.05, "KMeans: 初始化 Faiss ...")
+            
+        use_gpu = False
+        if use_gpu_prefer:
+            try:
+                num_gpus = faiss_lib.get_num_gpus()
+                use_gpu = (num_gpus > 0)
+            except Exception:
+                pass
+        
+        spherical = (metric == "cosine")
+        if progress_callback:
+            progress_callback(0.10, f"KMeans: Training (k={n_clusters}, gpu={use_gpu}, spherical={spherical}) ...")
+            
+        kmeans = faiss_lib.Kmeans(
+            d, 
+            int(n_clusters), 
+            niter=int(max_iter), 
+            verbose=False, 
+            spherical=spherical, 
+            gpu=use_gpu,
+            seed=int(random_state),
+            min_points_per_centroid=1,  # Allow small clusters for high-K scenarios to avoid warnings/errors
+            max_points_per_centroid=10000000 # No upper limit
+        )
+        
+        kmeans.train(x)
+        
+        if progress_callback:
+            progress_callback(0.80, "KMeans: Assigning labels ...")
+            
+        # Assign labels: find nearest centroid
+        # kmeans.index is automatically populated with centroids
+        _, I = kmeans.index.search(x, 1)
+        labels = I.flatten().astype(np.int32)
+        
+        inertia = float(kmeans.obj[-1]) if len(kmeans.obj) > 0 else np.nan
+        
+        return ClusterResult(
+            labels=labels,
+            meta={
+                "method": "faiss_kmeans",
+                "n_clusters": int(n_clusters),
+                "metric": metric,
+                "spherical": spherical,
+                "gpu": use_gpu,
+                "inertia": inertia,
+            },
+        )
+
+    # Fallback to Sklearn
+    if progress_callback:
+        progress_callback(0.10, "KMeans: Faiss not found, using Sklearn (slow) ...")
+        
     if minibatch:
         model = MiniBatchKMeans(
             n_clusters=int(n_clusters),
@@ -293,7 +358,7 @@ def kmeans_cluster(
     return ClusterResult(
         labels=labels,
         meta={
-            "method": "kmeans",
+            "method": "sklearn_kmeans",
             "n_clusters": int(n_clusters),
             "metric": metric,
             "minibatch": bool(minibatch),

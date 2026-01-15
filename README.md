@@ -16,9 +16,9 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## 输入数据要求
+## 数据要求
 
-支持 `pkl / pickle / parquet / csv` 文件，界面中填写**服务器端路径**加载。
+支持 `pkl / pickle / parquet / csv` 文件，界面中填写**服务器端路径**加载。需要将数据组织成以以下结构。
 
 ### 必需字段
 
@@ -33,17 +33,17 @@ streamlit run app.py
 - `ok`: bool，有效样本标记
 
 
-## 功能概览（当前实现）
+## 功能概览
 
-- **Home**：加载数据、字段校验、全局统计、簇大小分布图（GT 与可选 cluster 列）
-- **Clustering**：HAC / Infomap / KMeans 三种聚类（基于特征列），写回标签列并支持保存
+- **Home**：加载数据、字段校验、全局统计、簇大小分布图（gt 与可选 cluster_id* 列）
+- **Clustering**：HAC / Infomap / KMeans 三种聚类（需要基于`feature`列），写回标签列并支持保存
 - **Analysis**：按簇大小/簇内方差/散度（跨簇高相似邻居）排序展示；支持 cluster/obj 搜索、TopK 相似样本、1v1 相似度
 - **Annotation**：拆分或合并簇、修改标签列、保存修改
 - **Evaluation**：计算 Pairwise F1, BCubed F1 等聚类指标
 
 ## Faiss 与 Infomap 说明（可选依赖）
 
-本项目会优先使用 **Faiss**（IP + L2 normalize 即余弦相似度）来做 TopK 检索；若环境未安装 faiss，会给出清晰提示并禁用依赖 Faiss 的功能（如散度分析/TopK 相似）。
+优先使用 **Faiss**（IP + L2 normalize 即余弦相似度）来做 TopK 检索；若环境未安装 faiss，会给出清晰提示并禁用依赖 Faiss 的功能（如散度分析/TopK 相似）。
 
 Infomap 依赖 `infomap` 包；未安装时同样会提示并禁用 Infomap 聚类。
 
@@ -51,27 +51,24 @@ Infomap 依赖 `infomap` 包；未安装时同样会提示并禁用 Infomap 聚�
 
 ```
 .
-  app.py
-  pages/
-    01_Home.py
-    02_Clustering.py
-    03_Analysis.py
-    04_Annotation.py
-    05_Evaluation.py
-  src/
-    __init__.py
-    state.py
-    data_utils.py
-    faiss_utils.py
-    plot_utils.py
-    clustering_utils.py
-    analysis_utils.py
-    annotation_utils.py
-    eval_utils.py
-    ui_utils.py
-assets/
-  style.css
-requirements.txt
-README.md
+├── app.py
+├── pages/
+│   ├── 01_Home.py
+│   ├── 02_Clustering.py
+│   ├── 03_Analysis.py
+│   ├── 04_Annotation.py
+│   └── 05_Evaluation.py
+├── src/
+│   ├── state.py
+│   ├── data_utils.py
+│   ├── clustering_utils.py
+│   ├── analysis_utils.py
+│   ├── annotation_utils.py
+│   ├── eval_utils.py
+│   ├── faiss_utils.py
+│   ├── plot_utils.py
+│   └── ui_utils.py
+└── assets/
+    └── style.css
 ```
 

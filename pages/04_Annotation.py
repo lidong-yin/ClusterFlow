@@ -62,7 +62,7 @@ def _render_sidebar(df: pd.DataFrame):
     per_group_images = st.sidebar.slider("每簇预览图片数", 10, 200, 24)
     page_rows = st.sidebar.slider("展开时每页行数", 5, 30, 10)
 
-    run_btn = st.sidebar.button("🚀 开始加载/计算", type="primary", use_container_width=True)
+    run_btn = st.sidebar.button("开始加载/计算", type="primary", use_container_width=True)
     
     return {
         "target_col": target_col,
@@ -329,6 +329,7 @@ def main():
     st.set_page_config(page_title="Annotation - Face Clustering Analyzer", layout="wide", initial_sidebar_state="expanded")
     ui_utils.load_app_style()
     st.title("标注：拆分与修正")
+    st.caption("基于分析结果进行人工标注：拆分不纯簇、合并相似簇。")
 
     df = get_df()
     if df is None:
@@ -345,7 +346,7 @@ def main():
         st.session_state.pop(calc_key, None) 
     
     if st.session_state.get("last_anno_calc_key") != calc_key:
-        st.info("👈 请在侧边栏配置参数并点击 **“🚀 开始加载/计算”** 按钮以加载待标注数据。")
+        st.info("👈 请在侧边栏配置参数并点击 **“开始加载/计算”** 按钮以加载待标注数据。")
         return
 
     feat_col = get_feature_col()

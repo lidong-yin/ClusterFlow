@@ -29,8 +29,8 @@ def main() -> None:
     df = st.session_state.get(KEYS.df)
     if df is None:
         st.warning("🔴 尚未加载数据：请进入 **01_Home** 页面输入数据文件路径并加载。")
-        return
-    st.success(f"🟢 当前已加载数据：{len(df):,} rows | path = `{st.session_state.get(KEYS.data_path,'')}`")
+    else:
+        st.success(f"🟢 当前已加载数据：{len(df):,} rows | path = `{st.session_state.get(KEYS.data_path,'')}`")
 
     st.divider()
 

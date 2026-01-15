@@ -1,6 +1,6 @@
-# FaceClusterVis / Face Clustering Analyzer (V2.0)
+# ClusterFlow
 
-基于 **Streamlit** 的人脸聚类结果可视化与分析工具（模块化、可扩展、偏工程化实现）。
+基于 **Streamlit** 的人脸聚类、可视化分析、标注与评估工具（模块化、可扩展、偏工程化实现）。
 
 ## 运行方式
 
@@ -38,8 +38,8 @@ streamlit run app.py
 - **Home**：加载数据、字段校验、全局统计、簇大小分布图（GT 与可选 cluster 列）
 - **Clustering**：HAC / Infomap / KMeans 三种聚类（基于特征列），写回标签列并支持保存
 - **Analysis**：按簇大小/簇内方差/散度（跨簇高相似邻居）排序展示；支持 cluster/obj 搜索、TopK 相似样本、1v1 相似度
+- **Annotation**：拆分或合并簇、修改标签列、保存修改
 - **Evaluation**：计算 Pairwise F1, BCubed F1 等聚类指标
-- **Annotation**：占位页（后续扩展标注与应用标注）
 
 ## Faiss 与 Infomap 说明（可选依赖）
 

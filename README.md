@@ -1,7 +1,5 @@
-# ClusterFlow
-
 <p align="center">
-  <img src="assets/ClusterFlow.png" width="100%" />
+  <img src="assets/ClusterFlow.png" width="80%" />
 </p>
 
 > **基于 Streamlit 的人脸聚类、可视化分析、标注与评估一站式工具。**

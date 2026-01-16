@@ -4,7 +4,7 @@
 
 ### 功能导航
 <p align="center">
-  <img src="assets/0.png" width="800" />
+  <img src="assets/0.png" width="100%" />
 </p>
 
 ## 1. Home (主页与数据加载)
@@ -12,7 +12,7 @@
 **功能**：加载数据文件，进行字段校验，并查看数据集的全局统计信息。
 
 <p align="center">
-  <img src="assets/01.png" width="800" />
+  <img src="assets/01.png" width="100%" />
 </p>
 
 ### 操作步骤
@@ -27,7 +27,9 @@
 
 **功能**：配置参数并运行聚类算法，生成新的标签列。
 
-![Clustering Page](assets/02.png)
+<p align="center">
+  <img src="assets/02.png" width="100%" />
+</p>
 
 ### 支持算法
 *   **HAC (层次聚类)**：通过并查集合并高相似度邻居。
@@ -53,57 +55,62 @@
 
 ### 3.2 可视化展示
 可根据3.1的不同视角进行可视化。
-<p align="center">
-  <img src="assets/03_1.png" width="800" />
-</p>
+  <p align="center">
+    <img src="assets/03_1.png" width="100%" />
+  </p>
 *   **网格视图**：展示簇内图片，支持分页查看超大簇。
 *   **元数据显示**：图片下方可配置显示 `obj_id`, `属性` 等附加信息。
 
 ### 3.3 检索与比对
-*   **TopK 搜索**：输入 `obj_id`，利用 Faiss 实时检索全库最相似的 TopK 图片。
-    <p align="center">
-      <img src="assets/03_2.png" width="800" />
-    </p>
+<p align="center">
+  <img src="assets/03_2.png" width="100%" />
+</p>
+
+<p align="center">
+  <img src="assets/03_3.png" width="100%" />
+</p>
+
+- **TopK 搜索**：输入 `obj_id`，利用 Faiss 实时检索全库最相似的 TopK 图片。
+
 *   **1v1 比对**：输入两个 `obj_id`，直接计算余弦相似度。
-    <p align="center">
-      <img src="assets/03_3.png" width="800" />
-    </p>
 
 ## 4. Annotation (人工标注)
 
 **功能**：对分析中发现的问题簇进行人工修正（拆分或合并）。
 
 ### 4.1 拆分模式 (Split)
+<p align="center">
+  <img src="assets/04_1.png" width="100%" />
+</p>
 针对不纯的簇（Variance 排序）。
 1. 选择待修正的簇标签列。
 2. 进入 **拆分 (Split)** 模式。
 3. 选择聚类方法簇内聚类。
 4. 人工确认子簇归属，点击“确认拆分”。
-    <p align="center">
-      <img src="assets/04_1.png" width="800" />
-    </p>
 
 ### 4.2 合并模式 (Merge)
+<p align="center">
+  <img src="assets/04_2.png" width="100%" />
+</p>
 针对“过度拆分”的簇（Scatter 排序）。
 1. 进入 **合并 (Merge)** 模式。
 2. 设置对应的相似度阈值。
 2. 计算列出主簇（Main）及其高相似候选簇（Candidates）。
 3. 勾选属于同一人的候选簇，点击“合并到主簇”。
-    <p align="center">
-      <img src="assets/04_2.png" width="800" />
-    </p>
-    
 
 ### 4.3 结果应用
-![Merge Candidates](assets/04_3.png)
+<p align="center">
+  <img src="assets/04_3.png" width="100%" />
+</p>
 *   标注操作会记录在 CSV 文件中。
 *   点击“应用当前标注”可将修正结果回填到 DataFrame 的新列中（如 `cluster_id_corrected`）。
 
 ## 5. Evaluation (指标评估)
 
 **功能**：计算聚类质量指标，对比 GT 与预测结果。
-
-![Evaluation Page](assets/05.png)
+<p align="center">
+  <img src="assets/05.png" width="100%" />
+</p>
 
 ### 核心指标
 *   **Pairwise F1**：基于成对（Pair）关系的准确率与召回率调和平均，关注“两张脸是否被正确分到一组”。

@@ -6,7 +6,7 @@ from src.state import KEYS, ensure_state
 
 
 def main() -> None:
-    st.set_page_config(page_title="Face Clustering Analyzer", layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(page_title="ClusterFlow", layout="wide", initial_sidebar_state="expanded")
     ensure_state()
     ui_utils.load_app_style()
 

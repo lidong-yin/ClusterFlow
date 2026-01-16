@@ -203,9 +203,13 @@ def infomap_cluster(
             if progress_callback and (i % 10000 == 0 or i == n_nodes - 1):
                 progress_callback(0.25 + 0.50 * ((i + 1) / max(1, n_nodes)), f"Infomap: 构建图 {i+1}/{n_nodes}")
 
-    if progress_callback:
-        progress_callback(0.75, "Infomap: 运行算法 ...")
-    info.run()
+    if links > 0:
+        if progress_callback:
+            progress_callback(0.75, "Infomap: 运行算法 ...")
+        info.run()
+    else:
+        if progress_callback:
+            progress_callback(0.75, "Infomap: 无有效边，跳过算法运行 ...")
 
     lb2nodes: dict[int, list[int]] = {}
     for node in info.iterTree():

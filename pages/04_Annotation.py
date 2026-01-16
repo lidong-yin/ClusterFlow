@@ -338,25 +338,28 @@ def main():
 
     cfg = _render_sidebar(df)
     
-    # State key for calculation results
-    calc_key = f"anno_calc_{get_df_rev()}_{cfg['target_col']}_{cfg['anno_type']}_{cfg['sort_by']}"
+    feat_col = get_feature_col()
+    if feat_col not in df.columns:
+        st.error(f"特征列 {feat_col} 不存在。")
+        return
+    
+    # State key for calculation results (include params that affect computed results)
+    calc_key = (
+        f"anno_calc_{get_df_rev()}_{cfg['target_col']}_{cfg['anno_type']}_{cfg['sort_by']}_"
+        f"{feat_col}_{cfg['sim_th']}_{cfg['scatter_topk']}_{cfg['dedup_scatter']}"
+    )
+    cache_key = f"{calc_key}__cache"
     
     if cfg["run_btn"]:
         st.session_state["last_anno_calc_key"] = calc_key
-        st.session_state.pop(calc_key, None) 
+        st.session_state.pop(cache_key, None)
     
     if st.session_state.get("last_anno_calc_key") != calc_key:
         st.info("👈 请在侧边栏配置参数并点击 **“开始加载/计算”** 按钮以加载待标注数据。")
         return
 
-    feat_col = get_feature_col()
-    if feat_col not in df.columns:
-        st.error(f"特征列 {feat_col} 不存在。")
-        return
-
     # --- Calculation with Progress ---
-    @st.cache_data
-    def _get_anno_data(_df, t_col, f_col, a_type, s_th, s_topk, dedup_scatter, _rev):
+    def _get_anno_data(_df, t_col, f_col, a_type, s_th, s_topk, dedup_scatter):
         ph = st.empty()
         prog = ph.progress(0.0, text="准备数据...")
         
@@ -388,16 +391,19 @@ def main():
             ph.empty()
             return groups, feats, row_idx
 
-    data_res, all_feats, all_row_idx = _get_anno_data(
-        df,
-        cfg["target_col"],
-        feat_col,
-        cfg["anno_type"],
-        cfg["sim_th"],
-        cfg["scatter_topk"],
-        cfg["dedup_scatter"],
-        get_df_rev(),
-    )
+    if cache_key in st.session_state:
+        data_res, all_feats, all_row_idx = st.session_state[cache_key]
+    else:
+        data_res, all_feats, all_row_idx = _get_anno_data(
+            df,
+            cfg["target_col"],
+            feat_col,
+            cfg["anno_type"],
+            cfg["sim_th"],
+            cfg["scatter_topk"],
+            cfg["dedup_scatter"],
+        )
+        st.session_state[cache_key] = (data_res, all_feats, all_row_idx)
     
     feat_pos_map = pd.Series(np.arange(len(all_row_idx)), index=all_row_idx)
     

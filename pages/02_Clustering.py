@@ -45,8 +45,8 @@ def _render_sidebar(df) -> dict:
     params: dict = {"method": method, "feature_col": feature_col, "ok_only": ok_only}
 
     if method == "HAC":
-        params["cluster_th"] = st.sidebar.number_input("聚类阈值 (cos sim)", min_value=-1.0, max_value=1.0, value=0.6, step=0.01)
-        params["topk"] = st.sidebar.number_input("TopK 邻居", min_value=10, max_value=2048, value=256, step=1)
+        params["cluster_th"] = st.sidebar.number_input("聚类阈值 (cos sim)", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+        params["topk"] = st.sidebar.number_input("TopK 邻居", min_value=10, max_value=1024, value=256, step=1)
         init_label_col = st.sidebar.selectbox(
             "初始化标签列（可选）",
             options=["(none)"] + list(df.columns),
@@ -56,8 +56,8 @@ def _render_sidebar(df) -> dict:
         params["use_gpu_prefer"] = st.sidebar.checkbox("优先使用 GPU Faiss（若可用）", value=True)
 
     elif method == "Infomap":
-        params["cluster_th"] = st.sidebar.number_input("聚类阈值 (cos sim)", min_value=-1.0, max_value=1.0, value=0.6, step=0.01)
-        params["topk"] = st.sidebar.number_input("TopK 邻居", min_value=10, max_value=2048, value=256, step=1)
+        params["cluster_th"] = st.sidebar.number_input("聚类阈值 (cos sim)", min_value=0.0, max_value=1.0, value=0.4, step=0.01)
+        params["topk"] = st.sidebar.number_input("TopK 邻居", min_value=10, max_value=1024, value=256, step=1)
         params["sparsification"] = st.sidebar.checkbox("稀疏化", value=True)
         params["node_link"] = st.sidebar.number_input("稀疏化点数(node_link)", min_value=1, max_value=256, value=20, step=1)
         params["use_gpu_prefer"] = st.sidebar.checkbox("优先使用 GPU Faiss（若可用）", value=True)

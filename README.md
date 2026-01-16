@@ -2,11 +2,17 @@
   <img src="assets/ClusterFlow.png" width="80%" />
 </p>
 
-> **基于 Streamlit 的人脸聚类、可视化分析、标注与评估一站式工具。**
+<p align="center">
+  <strong>基于 Streamlit 的人脸聚类、可视化分析、标注与评估一站式工具。</strong>
+</p>
 
-集成了数据加载、聚类算法运行、结果分析、人工辅助标注（拆分/合并）以及评估等全流程功能。适合快速验证聚类效果、清洗数据或进行 Case 分析。
+<p align="center">
+  集成了数据加载、聚类算法运行、结果分析、人工辅助标注（拆分/合并）以及评估等全流程功能。适合快速验证聚类效果、清洗数据或进行 Case 分析。
+</p>
 
-👉 **[查看详细用户手册 (User Manual)](ClusterFlow.md)**
+<p align="center">
+  👉 <a href="ClusterFlow.md"><strong>查看详细用户手册 (User Manual)</strong></a>
+</p>
 
 ---
 

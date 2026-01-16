@@ -2,6 +2,10 @@
 
 本文档将详细介绍**ClusterFlow**各个模块的功能与使用方法。以下使用为ms1m采样数据作为示例。
 
+### 功能导航
+<p align="center">
+  <img src="assets/0.png" width="800" />
+</p>
 
 ## 1. Home (主页与数据加载)
 

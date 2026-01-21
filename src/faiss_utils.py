@@ -111,7 +111,7 @@ def search_in_batches(
     queries = queries.astype(np.float32, copy=False)
     n = int(queries.shape[0])
     sims_all = np.empty((n, k), dtype=np.float32)
-    nbrs_all = np.empty((n, k), dtype=np.int64)
+    nbrs_all = np.empty((n, k), dtype=np.int32)
     total_batches = int(np.ceil(n / batch_size))
     bi = 0
     for start in range(0, n, batch_size):

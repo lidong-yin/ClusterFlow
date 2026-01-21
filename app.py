@@ -10,7 +10,7 @@ def main() -> None:
     ensure_state()
     ui_utils.load_app_style()
 
-    st.title("Face Clustering Analyzer")
+    st.title("ClusterFlow")
     
     st.markdown("### 🚀 功能导航")
     col1, col2, col3 = st.columns(3)

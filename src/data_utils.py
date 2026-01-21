@@ -50,10 +50,32 @@ def load_dataframe(path: str) -> tuple[pd.DataFrame, str]:
             if c in obj.columns:
                 obj[c] = obj[c].astype(str)
         return obj, "pkl"
+
     if ext in {"parquet"}:
-        return pd.read_parquet(path), "parquet"
+        obj = pd.read_parquet(path)
+        if not isinstance(obj, pd.DataFrame):
+            try:
+                obj = pd.DataFrame(obj)
+            except Exception as e:
+                raise TypeError(f"PARQUET 加载成功，但内容不是 DataFrame 且无法转换: {type(obj)}") from e
+        
+        for c in ["obj_id", "img_url", "gt_person_id"]:
+            if c in obj.columns:
+                obj[c] = obj[c].astype(str)
+        return obj, "parquet"
+
     if ext in {"csv"}:
-        return pd.read_csv(path), "csv"
+        obj = pd.read_csv(path)
+        if not isinstance(obj, pd.DataFrame):
+            try:
+                obj = pd.DataFrame(obj)
+            except Exception as e:
+                raise TypeError(f"CSV 加载成功，但内容不是 DataFrame 且无法转换: {type(obj)}") from e
+        
+        for c in ["obj_id", "img_url", "gt_person_id"]:
+            if c in obj.columns:
+                obj[c] = obj[c].astype(str)
+        return obj, "csv"
 
     raise ValueError(f"不支持的文件格式: .{ext} (仅支持 pkl/pickle/parquet/csv)")
 

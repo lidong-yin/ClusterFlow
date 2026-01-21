@@ -21,7 +21,6 @@ def _file_ext(path: str) -> str:
     return os.path.splitext(path)[1].lower().lstrip(".")
 
 
-@st.cache_data(show_spinner=False)
 def load_dataframe(path: str) -> tuple[pd.DataFrame, str]:
     """
     Load dataframe from server-side path.
@@ -37,6 +36,9 @@ def load_dataframe(path: str) -> tuple[pd.DataFrame, str]:
         raise IsADirectoryError(f"路径是目录而不是文件: {path}")
 
     ext = _file_ext(path)
+
+    str_cols = ["obj_id", "img_url", "gt_person_id"] # 必须字段
+    
     if ext in {"pkl", "pickle"}:
         obj = pd.read_pickle(path)
         if not isinstance(obj, pd.DataFrame):
@@ -46,14 +48,22 @@ def load_dataframe(path: str) -> tuple[pd.DataFrame, str]:
                 raise TypeError(f"PKL 加载成功，但内容不是 DataFrame 且无法转换: {type(obj)}") from e
         
         # Enforce string type for critical columns to avoid PyArrow mixed type inference issues
-        for c in ["obj_id", "img_url", "gt_person_id"]:
+        for c in str_cols:
             if c in obj.columns:
                 obj[c] = obj[c].astype(str)
         return obj, "pkl"
     if ext in {"parquet"}:
-        return pd.read_parquet(path), "parquet"
+        df = pd.read_parquet(path)
+        for c in str_cols:
+            if c in df.columns:
+                df[c] = df[c].astype(str)
+        return df, "parquet"
     if ext in {"csv"}:
-        return pd.read_csv(path), "csv"
+        df = pd.read_csv(path)
+        for c in str_cols:
+            if c in df.columns:
+                df[c] = df[c].astype(str)
+        return df, "csv"
 
     raise ValueError(f"不支持的文件格式: .{ext} (仅支持 pkl/pickle/parquet/csv)")
 
@@ -156,10 +166,20 @@ def extract_feature_matrix(
         mask &= df[ok_col].fillna(False).astype(bool)
 
     rows = df.loc[mask, feature_col]
-    feats_list: list[np.ndarray] = []
-    row_idx: list[Any] = []
-    bad = 0
     total = int(len(rows))
+    
+    if total == 0:
+        raise ValueError("无法构建特征矩阵：过滤后行数为 0。")
+    
+    feats_list: list[np.ndarray] = []
+    row_idx_list: list[Any] = []
+    bad = 0
+    
+    batch_size = 10000 # 批次加载
+    processed = 0
+    batch_feats = []
+    batch_indices = []
+    
     for ridx, val in rows.items():
         vec = _parse_feature_vector(val)
         if vec is None:
@@ -167,10 +187,35 @@ def extract_feature_matrix(
             continue
         if vec.ndim != 1:
             vec = vec.reshape(-1)
-        feats_list.append(vec.astype(np.float32, copy=False))
-        row_idx.append(ridx)
-        if progress_callback and (len(feats_list) % 20000 == 0):
-            progress_callback(min(0.99, len(feats_list) / max(1, total)), f"解析特征: {len(feats_list):,}/{total:,}")
+
+        vec_float32 = vec.astype(np.float32, copy=False)
+        batch_feats.append(vec_float32)
+        batch_indices.append(ridx)
+        processed += 1
+
+        if len(batch_feats) >= batch_size:
+            if feats_list:
+                first_dim = feats_list[0].shape[0]
+                if batch_feats[0].shape[0] != first_dim:
+                    raise ValueError(f"feature 维度不一致: 期望 {first_dim}, 得到 {batch_feats[0].shape[0]}")
+            batch_array = np.stack(batch_feats, axis=0)
+            feats_list.append(batch_array)
+            row_idx_list.extend(batch_indices)
+            batch_feats = []
+            batch_indices = []
+
+            if progress_callback:
+                progress_callback(min(0.99, processed / max(1, total)), f"解析特征: {processed:,}/{total:,}")
+
+    # Handle remaining items
+    if batch_feats:
+        if feats_list:
+            first_dim = feats_list[0].shape[0]
+            if batch_feats[0].shape[0] != first_dim:
+                raise ValueError(f"feature 维度不一致: 期望 {first_dim}, 得到 {batch_feats[0].shape[0]}")
+        batch_array = np.stack(batch_feats, axis=0)
+        feats_list.append(batch_array)
+        row_idx_list.extend(batch_indices)
 
     if len(feats_list) == 0:
         raise ValueError(
@@ -178,13 +223,15 @@ def extract_feature_matrix(
             + (f"（过滤掉 {bad} 条无效 feature）" if bad else "")
         )
 
-    # Ensure consistent dimensionality
-    dims = {v.shape[0] for v in feats_list}
-    if len(dims) != 1:
-        raise ValueError(f"feature 维度不一致，检测到多个维度: {sorted(dims)}")
-
-    feats = np.stack(feats_list, axis=0).astype(np.float32, copy=False)
-    return feats, np.asarray(row_idx)
+    if len(feats_list) == 1:
+        feats = feats_list[0]
+    else:
+        feats = np.vstack(feats_list).astype(np.float32, copy=False)
+    
+    if progress_callback:
+        progress_callback(1.0, f"完成: {len(row_idx_list):,} 个有效特征")
+    
+    return feats, np.asarray(row_idx_list, dtype=object)
 
 
 def save_dataframe(df: pd.DataFrame, path: str) -> None:
